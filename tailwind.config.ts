@@ -47,6 +47,22 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        peugeot: {
+          DEFAULT: "hsl(var(--peugeot))",
+          foreground: "hsl(var(--peugeot-foreground))",
+        },
+        citroen: {
+          DEFAULT: "hsl(var(--citroen))",
+          foreground: "hsl(var(--citroen-foreground))",
+        },
+        alfa: {
+          DEFAULT: "hsl(var(--alfa))",
+          foreground: "hsl(var(--alfa-foreground))",
+        },
+        jeep: {
+          DEFAULT: "hsl(var(--jeep))",
+          foreground: "hsl(var(--jeep-foreground))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
