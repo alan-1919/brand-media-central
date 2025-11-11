@@ -30,7 +30,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectValue placeholder="全部" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             <SelectItem value="測試試駕">測試試駕</SelectItem>
             <SelectItem value="形象廣告">形象廣告</SelectItem>
             <SelectItem value="技術解說">技術解說</SelectItem>
@@ -48,7 +48,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectValue placeholder="全部" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             {years.map((year) => (
               <SelectItem key={year} value={year}>
                 {year}
@@ -65,7 +65,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectValue placeholder="全部" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             <SelectItem value="zh-TW">繁體中文</SelectItem>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="ja">日本語</SelectItem>
@@ -81,7 +81,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectValue placeholder="全部" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             <SelectItem value="官方頻道">官方頻道</SelectItem>
             <SelectItem value="媒體頻道">媒體頻道</SelectItem>
             <SelectItem value="經銷產出">經銷產出</SelectItem>
@@ -96,7 +96,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectValue placeholder="全部" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             <SelectItem value="yes">有字幕</SelectItem>
             <SelectItem value="no">無字幕</SelectItem>
           </SelectContent>
@@ -110,7 +110,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectValue placeholder="全部" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">全部</SelectItem>
+            <SelectItem value="all">全部</SelectItem>
             <SelectItem value="16:9">16:9</SelectItem>
             <SelectItem value="9:16">9:16</SelectItem>
             <SelectItem value="1:1">1:1</SelectItem>

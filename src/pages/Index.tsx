@@ -51,12 +51,12 @@ export default function Index() {
   const [selectedBrand, setSelectedBrand] = useState(searchParams.get('brand') || 'ALL');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [filters, setFilters] = useState({
-    mediaType: searchParams.get('mediaType') || '',
-    year: searchParams.get('year') || '',
-    language: searchParams.get('language') || '',
-    source: searchParams.get('source') || '',
-    captions: searchParams.get('captions') || '',
-    aspectRatio: searchParams.get('aspectRatio') || '',
+    mediaType: searchParams.get('mediaType') || 'all',
+    year: searchParams.get('year') || 'all',
+    language: searchParams.get('language') || 'all',
+    source: searchParams.get('source') || 'all',
+    captions: searchParams.get('captions') || 'all',
+    aspectRatio: searchParams.get('aspectRatio') || 'all',
   });
   
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'updated_at');
@@ -74,12 +74,12 @@ export default function Index() {
     const params: Record<string, string> = {};
     if (selectedBrand !== 'ALL') params.brand = selectedBrand;
     if (searchQuery) params.search = searchQuery;
-    if (filters.mediaType) params.mediaType = filters.mediaType;
-    if (filters.year) params.year = filters.year;
-    if (filters.language) params.language = filters.language;
-    if (filters.source) params.source = filters.source;
-    if (filters.captions) params.captions = filters.captions;
-    if (filters.aspectRatio) params.aspectRatio = filters.aspectRatio;
+    if (filters.mediaType && filters.mediaType !== 'all') params.mediaType = filters.mediaType;
+    if (filters.year && filters.year !== 'all') params.year = filters.year;
+    if (filters.language && filters.language !== 'all') params.language = filters.language;
+    if (filters.source && filters.source !== 'all') params.source = filters.source;
+    if (filters.captions && filters.captions !== 'all') params.captions = filters.captions;
+    if (filters.aspectRatio && filters.aspectRatio !== 'all') params.aspectRatio = filters.aspectRatio;
     if (sortBy !== 'updated_at') params.sort = sortBy;
     if (page !== 1) params.page = page.toString();
     
@@ -105,22 +105,22 @@ export default function Index() {
       }
 
       // Apply filters
-      if (filters.mediaType) {
+      if (filters.mediaType && filters.mediaType !== 'all') {
         query = query.eq('media_type', filters.mediaType as any);
       }
-      if (filters.year) {
+      if (filters.year && filters.year !== 'all') {
         query = query.gte('publish_date', `${filters.year}-01-01`).lte('publish_date', `${filters.year}-12-31`);
       }
-      if (filters.language) {
+      if (filters.language && filters.language !== 'all') {
         query = query.eq('language', filters.language as any);
       }
-      if (filters.source) {
+      if (filters.source && filters.source !== 'all') {
         query = query.eq('source', filters.source as any);
       }
-      if (filters.captions) {
+      if (filters.captions && filters.captions !== 'all') {
         query = query.eq('captions', filters.captions === 'yes');
       }
-      if (filters.aspectRatio) {
+      if (filters.aspectRatio && filters.aspectRatio !== 'all') {
         query = query.eq('aspect_ratio', filters.aspectRatio as any);
       }
 
