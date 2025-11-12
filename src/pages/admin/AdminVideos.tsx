@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Download, Upload } from 'lucide-react';
+import { Plus, Search, Upload } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { VideoTable } from '@/components/admin/videos/VideoTable';
 import { VideoFormDialog } from '@/components/admin/videos/VideoFormDialog';
 import { BulkEditDialog } from '@/components/admin/videos/BulkEditDialog';
+import { CSVImportDialog } from '@/components/admin/videos/CSVImportDialog';
 import { Database } from '@/integrations/supabase/types';
 
 type Video = Database['public']['Tables']['videos']['Row'];
@@ -22,6 +23,7 @@ export default function AdminVideos() {
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [isCSVImportOpen, setIsCSVImportOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -119,6 +121,10 @@ export default function AdminVideos() {
             <Button variant="outline" onClick={handleBulkEdit}>
               批量編輯
             </Button>
+            <Button variant="outline" onClick={() => setIsCSVImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              CSV 匯入
+            </Button>
           </div>
         </div>
 
@@ -163,6 +169,15 @@ export default function AdminVideos() {
             fetchVideos();
           }}
           selectedVideoIds={selectedVideos}
+        />
+
+        <CSVImportDialog
+          open={isCSVImportOpen}
+          onClose={() => setIsCSVImportOpen(false)}
+          onSuccess={() => {
+            setIsCSVImportOpen(false);
+            fetchVideos();
+          }}
         />
       </div>
     </AdminLayout>
