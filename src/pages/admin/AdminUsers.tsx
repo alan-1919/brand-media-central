@@ -35,7 +35,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<string>('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<UserRole | null>(null);
 
@@ -156,7 +156,7 @@ export default function AdminUsers() {
     const matchesSearch = !searchQuery || 
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.full_name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = !selectedRole || user.role === selectedRole;
+    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
     return matchesSearch && matchesRole;
   });
 
@@ -207,7 +207,7 @@ export default function AdminUsers() {
                 <SelectValue placeholder="所有角色" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">所有角色</SelectItem>
+                <SelectItem value="all">所有角色</SelectItem>
                 <SelectItem value="visitor">Visitor</SelectItem>
                 <SelectItem value="dealer">Dealer</SelectItem>
                 <SelectItem value="editor">Editor</SelectItem>
