@@ -169,17 +169,28 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Prepare data for insertion
+      // Prepare data for insertion - 只保留有值的欄位
       const videosToInsert = rows.map(row => {
         const { _rowNumber, ...videoData } = row;
-        return {
-          ...videoData,
-          created_by: user?.id,
-          updated_by: user?.id,
-          thumbnail_url: row.thumbnail_url || (row.youtube_video_id ? `https://img.youtube.com/vi/${row.youtube_video_id}/maxresdefault.jpg` : null),
-          status: row.status || 'published',
-          dealer_visibility: row.dealer_visibility || 'dealer-visible'
-        };
+        
+        // 建立基礎物件，只包含有值的欄位
+        const cleanData: any = {};
+        Object.keys(videoData).forEach(key => {
+          if (videoData[key] !== null && videoData[key] !== undefined && videoData[key] !== '') {
+            cleanData[key] = videoData[key];
+          }
+        });
+        
+        // 新增系統欄位
+        cleanData.created_by = user?.id;
+        cleanData.updated_by = user?.id;
+        
+        // 只在有 youtube_video_id 時才設定縮圖
+        if (!cleanData.thumbnail_url && cleanData.youtube_video_id) {
+          cleanData.thumbnail_url = `https://img.youtube.com/vi/${cleanData.youtube_video_id}/maxresdefault.jpg`;
+        }
+        
+        return cleanData;
       });
 
       // Insert videos
