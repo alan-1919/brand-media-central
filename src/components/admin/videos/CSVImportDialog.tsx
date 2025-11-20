@@ -78,37 +78,55 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
     const errors: string[] = [];
     const rowNum = row._rowNumber;
 
-    if (!row.brand || !['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP'].includes(row.brand)) {
-      errors.push(`第 ${rowNum} 列：品牌必須是 PEUGEOT、CITROËN、ALFA ROMEO 或 JEEP`);
+    // 只驗證有提供值時的格式，不強制必填
+    if (row.brand && !['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP'].includes(row.brand)) {
+      errors.push(`第 ${rowNum} 列：品牌必須是 PEUGEOT、CITROËN、ALFA ROMEO 或 JEEP 其中之一`);
     }
 
-    if (!row.title_zh) {
-      errors.push(`第 ${rowNum} 列：中文標題為必填欄位`);
-    }
-
-    if (!row.youtube_url) {
-      errors.push(`第 ${rowNum} 列：YouTube 連結為必填欄位`);
-    } else {
-      const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/;
+    // 嘗試從 youtube_url 提取 video_id，但不強制格式
+    if (row.youtube_url) {
+      const youtubeRegex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]+)/;
       const match = row.youtube_url.match(youtubeRegex);
-      if (!match) {
-        errors.push(`第 ${rowNum} 列：YouTube 連結格式不正確`);
-      } else {
+      if (match) {
         row.youtube_video_id = match[1];
       }
     }
 
-    if (!row.publish_date) {
-      errors.push(`第 ${rowNum} 列：發布日期為必填欄位`);
-    } else {
+    // 只在有提供日期時驗證格式
+    if (row.publish_date) {
       const date = new Date(row.publish_date);
-      if (isNaN(date.getTime()) || date < new Date('2005-01-01')) {
-        errors.push(`第 ${rowNum} 列：發布日期格式不正確或早於 2005-01-01`);
+      if (isNaN(date.getTime())) {
+        errors.push(`第 ${rowNum} 列：發布日期格式不正確`);
       }
     }
 
-    if (!row.dealer_visibility || !['internal-only', 'dealer-visible'].includes(row.dealer_visibility)) {
+    // 只在有提供值時驗證枚舉欄位
+    if (row.dealer_visibility && !['internal-only', 'dealer-visible'].includes(row.dealer_visibility)) {
       errors.push(`第 ${rowNum} 列：經銷商可見性必須是 internal-only 或 dealer-visible`);
+    }
+
+    if (row.media_type && !['測試試駕', '形象廣告', '技術解說', '新車發表', '活動報導', '其他'].includes(row.media_type)) {
+      errors.push(`第 ${rowNum} 列：媒體類型值不正確`);
+    }
+
+    if (row.source && !['官方頻道', '媒體頻道', '經銷產出'].includes(row.source)) {
+      errors.push(`第 ${rowNum} 列：來源必須是官方頻道、媒體頻道或經銷產出`);
+    }
+
+    if (row.language && !['zh-TW', 'en', 'ja', 'fr'].includes(row.language)) {
+      errors.push(`第 ${rowNum} 列：語言必須是 zh-TW、en、ja 或 fr`);
+    }
+
+    if (row.region && !['TW', 'EU', 'JP', 'OTHER'].includes(row.region)) {
+      errors.push(`第 ${rowNum} 列：地區必須是 TW、EU、JP 或 OTHER`);
+    }
+
+    if (row.aspect_ratio && !['16:9', '9:16', '1:1', 'other'].includes(row.aspect_ratio)) {
+      errors.push(`第 ${rowNum} 列：比例必須是 16:9、9:16、1:1 或 other`);
+    }
+
+    if (row.status && !['draft', 'published'].includes(row.status)) {
+      errors.push(`第 ${rowNum} 列：狀態必須是 draft 或 published`);
     }
 
     return errors;
@@ -158,8 +176,9 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
           ...videoData,
           created_by: user?.id,
           updated_by: user?.id,
-          thumbnail_url: row.thumbnail_url || `https://img.youtube.com/vi/${row.youtube_video_id}/maxresdefault.jpg`,
-          status: row.status || 'published'
+          thumbnail_url: row.thumbnail_url || (row.youtube_video_id ? `https://img.youtube.com/vi/${row.youtube_video_id}/maxresdefault.jpg` : null),
+          status: row.status || 'published',
+          dealer_visibility: row.dealer_visibility || 'dealer-visible'
         };
       });
 
@@ -207,7 +226,7 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
         <DialogHeader>
           <DialogTitle>CSV 批量匯入影片</DialogTitle>
           <DialogDescription>
-            請下載 CSV 範本填寫資料後上傳。必填欄位：品牌、中文標題、YouTube 連結、發布日期、經銷商可見性。
+            請下載 CSV 範本填寫資料後上傳。您可以只填寫需要的欄位，系統會自動處理缺失的資訊。
           </DialogDescription>
         </DialogHeader>
 
