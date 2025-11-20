@@ -65,7 +65,7 @@ export type Database = {
       videos: {
         Row: {
           aspect_ratio: Database["public"]["Enums"]["aspect_ratio_enum"] | null
-          brand: Database["public"]["Enums"]["brand_enum"]
+          brand: Database["public"]["Enums"]["brand_enum"] | null
           campaign: string | null
           captions: boolean | null
           channel_name: string | null
@@ -76,20 +76,20 @@ export type Database = {
           hero: boolean | null
           id: string
           language: Database["public"]["Enums"]["language_enum"] | null
-          media_type: Database["public"]["Enums"]["media_type_enum"]
+          media_type: Database["public"]["Enums"]["media_type_enum"] | null
           model: string | null
           notes: string | null
-          publish_date: string
+          publish_date: string | null
           region: Database["public"]["Enums"]["region_enum"] | null
           rights_note: string | null
-          source: Database["public"]["Enums"]["source_enum"]
+          source: Database["public"]["Enums"]["source_enum"] | null
           source_account: string | null
           source_url: string | null
           status: Database["public"]["Enums"]["status_enum"] | null
           tags: string[] | null
           thumbnail_url: string | null
           title_en: string | null
-          title_zh: string
+          title_zh: string | null
           updated_at: string
           updated_by: string | null
           utm_template: string | null
@@ -99,7 +99,7 @@ export type Database = {
         }
         Insert: {
           aspect_ratio?: Database["public"]["Enums"]["aspect_ratio_enum"] | null
-          brand: Database["public"]["Enums"]["brand_enum"]
+          brand?: Database["public"]["Enums"]["brand_enum"] | null
           campaign?: string | null
           captions?: boolean | null
           channel_name?: string | null
@@ -110,20 +110,20 @@ export type Database = {
           hero?: boolean | null
           id?: string
           language?: Database["public"]["Enums"]["language_enum"] | null
-          media_type: Database["public"]["Enums"]["media_type_enum"]
+          media_type?: Database["public"]["Enums"]["media_type_enum"] | null
           model?: string | null
           notes?: string | null
-          publish_date: string
+          publish_date?: string | null
           region?: Database["public"]["Enums"]["region_enum"] | null
           rights_note?: string | null
-          source: Database["public"]["Enums"]["source_enum"]
+          source?: Database["public"]["Enums"]["source_enum"] | null
           source_account?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
           tags?: string[] | null
           thumbnail_url?: string | null
           title_en?: string | null
-          title_zh: string
+          title_zh?: string | null
           updated_at?: string
           updated_by?: string | null
           utm_template?: string | null
@@ -133,7 +133,7 @@ export type Database = {
         }
         Update: {
           aspect_ratio?: Database["public"]["Enums"]["aspect_ratio_enum"] | null
-          brand?: Database["public"]["Enums"]["brand_enum"]
+          brand?: Database["public"]["Enums"]["brand_enum"] | null
           campaign?: string | null
           captions?: boolean | null
           channel_name?: string | null
@@ -144,20 +144,20 @@ export type Database = {
           hero?: boolean | null
           id?: string
           language?: Database["public"]["Enums"]["language_enum"] | null
-          media_type?: Database["public"]["Enums"]["media_type_enum"]
+          media_type?: Database["public"]["Enums"]["media_type_enum"] | null
           model?: string | null
           notes?: string | null
-          publish_date?: string
+          publish_date?: string | null
           region?: Database["public"]["Enums"]["region_enum"] | null
           rights_note?: string | null
-          source?: Database["public"]["Enums"]["source_enum"]
+          source?: Database["public"]["Enums"]["source_enum"] | null
           source_account?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["status_enum"] | null
           tags?: string[] | null
           thumbnail_url?: string | null
           title_en?: string | null
-          title_zh?: string
+          title_zh?: string | null
           updated_at?: string
           updated_by?: string | null
           utm_template?: string | null
