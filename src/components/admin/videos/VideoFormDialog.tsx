@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 import { Link } from 'react-router-dom';
+import { EditableSelect } from './EditableSelect';
 
 type Video = Database['public']['Tables']['videos']['Row'];
 
@@ -30,7 +31,7 @@ const parseYoutubeUrl = (url: string): string | null => {
 };
 
 const videoSchema = z.object({
-  brand: z.enum(['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP']),
+  brand: z.enum(['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP']).optional(),
   model: z.string().optional(),
   title_zh: z.string().min(1, '必填'),
   title_en: z.string().optional(),
@@ -39,12 +40,12 @@ const videoSchema = z.object({
     const d = new Date(date);
     return d >= new Date('2005-01-01') && !isNaN(d.getTime());
   }, '發布日期必須在 2005-01-01 之後'),
-  media_type: z.enum(['測試試駕', '形象廣告', '技術解說', '新車發表', '活動報導', '其他']),
+  media_type: z.enum(['測試試駕', '形象廣告', '技術解說', '新車發表', '活動報導', '其他']).optional(),
   dealer_visibility: z.enum(['dealer-visible', 'internal-only']),
   status: z.enum(['published', 'draft']).default('published'),
   language: z.enum(['zh-TW', 'en', 'ja', 'fr']).optional(),
   region: z.enum(['TW', 'EU', 'JP', 'OTHER']).optional(),
-  source: z.enum(['官方頻道', '媒體頻道', '經銷產出']),
+  source: z.enum(['官方頻道', '媒體頻道', '經銷產出']).optional(),
   channel_name: z.string().optional(),
   source_account: z.string().optional(),
   source_url: z.string().url().optional().or(z.literal('')),
@@ -70,7 +71,47 @@ interface VideoFormDialogProps {
 
 export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDialogProps) {
   const [duplicateVideo, setDuplicateVideo] = useState<Video | null>(null);
+  const [brandOptions, setBrandOptions] = useState<string[]>(['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP']);
+  const [modelOptions, setModelOptions] = useState<string[]>([]);
+  const [channelOptions, setChannelOptions] = useState<string[]>([]);
   const { toast } = useToast();
+
+  // Load existing options from database
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        // Fetch unique models
+        const { data: models } = await supabase
+          .from('videos')
+          .select('model')
+          .not('model', 'is', null)
+          .order('model');
+        
+        if (models) {
+          const uniqueModels = [...new Set(models.map(v => v.model).filter(Boolean) as string[])];
+          setModelOptions(uniqueModels.sort());
+        }
+
+        // Fetch unique channel names
+        const { data: channels } = await supabase
+          .from('videos')
+          .select('channel_name')
+          .not('channel_name', 'is', null)
+          .order('channel_name');
+        
+        if (channels) {
+          const uniqueChannels = [...new Set(channels.map(v => v.channel_name).filter(Boolean) as string[])];
+          setChannelOptions(uniqueChannels.sort());
+        }
+      } catch (error) {
+        console.error('Error loading options:', error);
+      }
+    };
+
+    if (open) {
+      loadOptions();
+    }
+  }, [open]);
 
   const form = useForm<VideoFormData>({
     resolver: zodResolver(videoSchema),
@@ -191,19 +232,16 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>品牌 *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="PEUGEOT">PEUGEOT</SelectItem>
-                        <SelectItem value="CITROËN">CITROËN</SelectItem>
-                        <SelectItem value="ALFA ROMEO">ALFA ROMEO</SelectItem>
-                        <SelectItem value="JEEP">JEEP</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <EditableSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={brandOptions}
+                        onOptionsChange={setBrandOptions}
+                        placeholder="選擇品牌..."
+                        emptyMessage="未找到品牌"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -216,7 +254,14 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                   <FormItem>
                     <FormLabel>車型</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <EditableSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={modelOptions}
+                        onOptionsChange={setModelOptions}
+                        placeholder="選擇或新增車型..."
+                        emptyMessage="未找到車型"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -435,7 +480,14 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                   <FormItem>
                     <FormLabel>頻道名稱</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <EditableSelect
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        options={channelOptions}
+                        onOptionsChange={setChannelOptions}
+                        placeholder="選擇或新增頻道..."
+                        emptyMessage="未找到頻道"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
