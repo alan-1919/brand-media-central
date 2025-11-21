@@ -94,8 +94,8 @@ export type Database = {
           updated_by: string | null
           utm_template: string | null
           views: number | null
-          youtube_url: string
-          youtube_video_id: string
+          youtube_url: string | null
+          youtube_video_id: string | null
         }
         Insert: {
           aspect_ratio?: Database["public"]["Enums"]["aspect_ratio_enum"] | null
@@ -128,8 +128,8 @@ export type Database = {
           updated_by?: string | null
           utm_template?: string | null
           views?: number | null
-          youtube_url: string
-          youtube_video_id: string
+          youtube_url?: string | null
+          youtube_video_id?: string | null
         }
         Update: {
           aspect_ratio?: Database["public"]["Enums"]["aspect_ratio_enum"] | null
@@ -162,8 +162,8 @@ export type Database = {
           updated_by?: string | null
           utm_template?: string | null
           views?: number | null
-          youtube_url?: string
-          youtube_video_id?: string
+          youtube_url?: string | null
+          youtube_video_id?: string | null
         }
         Relationships: []
       }
