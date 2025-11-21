@@ -17,7 +17,9 @@ import { EditableSelect } from './EditableSelect';
 
 type Video = Database['public']['Tables']['videos']['Row'];
 
-const parseYoutubeUrl = (url: string): string | null => {
+const parseYoutubeUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
     /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
@@ -31,33 +33,30 @@ const parseYoutubeUrl = (url: string): string | null => {
 };
 
 const videoSchema = z.object({
-  brand: z.enum(['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP']).optional(),
-  model: z.string().optional(),
-  title_zh: z.string().min(1, '必填'),
-  title_en: z.string().optional(),
-  youtube_url: z.string().url('請輸入有效的 YouTube 連結'),
-  publish_date: z.string().refine((date) => {
-    const d = new Date(date);
-    return d >= new Date('2005-01-01') && !isNaN(d.getTime());
-  }, '發布日期必須在 2005-01-01 之後'),
-  media_type: z.enum(['測試試駕', '形象廣告', '技術解說', '新車發表', '活動報導', '其他']).optional(),
-  dealer_visibility: z.enum(['dealer-visible', 'internal-only']),
-  status: z.enum(['published', 'draft']).default('published'),
-  language: z.enum(['zh-TW', 'en', 'ja', 'fr']).optional(),
-  region: z.enum(['TW', 'EU', 'JP', 'OTHER']).optional(),
-  source: z.enum(['官方頻道', '媒體頻道', '經銷產出']).optional(),
-  channel_name: z.string().optional(),
-  source_account: z.string().optional(),
-  source_url: z.string().url().optional().or(z.literal('')),
-  duration_sec: z.number().int().min(0).optional().or(z.literal('')),
-  aspect_ratio: z.enum(['16:9', '9:16', '1:1', 'other']).optional(),
-  captions: z.boolean().default(false),
-  hero: z.boolean().default(false),
-  tags: z.string().optional(),
-  campaign: z.string().optional(),
-  utm_template: z.string().optional(),
-  rights_note: z.string().optional(),
-  notes: z.string().optional(),
+  brand: z.enum(['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP']).nullable().optional(),
+  model: z.string().nullable().optional(),
+  title_zh: z.string().nullable().optional(),
+  title_en: z.string().nullable().optional(),
+  youtube_url: z.string().nullable().optional(),
+  publish_date: z.string().nullable().optional(),
+  media_type: z.enum(['測試試駕', '形象廣告', '技術解說', '新車發表', '活動報導', '其他']).nullable().optional(),
+  dealer_visibility: z.enum(['dealer-visible', 'internal-only']).nullable().optional(),
+  status: z.enum(['published', 'draft']).nullable().optional(),
+  language: z.enum(['zh-TW', 'en', 'ja', 'fr']).nullable().optional(),
+  region: z.enum(['TW', 'EU', 'JP', 'OTHER']).nullable().optional(),
+  source: z.enum(['官方頻道', '媒體頻道', '經銷產出']).nullable().optional(),
+  channel_name: z.string().nullable().optional(),
+  source_account: z.string().nullable().optional(),
+  source_url: z.string().nullable().optional(),
+  duration_sec: z.number().int().nullable().optional().or(z.literal('')),
+  aspect_ratio: z.enum(['16:9', '9:16', '1:1', 'other']).nullable().optional(),
+  captions: z.boolean().nullable().optional(),
+  hero: z.boolean().nullable().optional(),
+  tags: z.string().nullable().optional(),
+  campaign: z.string().nullable().optional(),
+  utm_template: z.string().nullable().optional(),
+  rights_note: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 type VideoFormData = z.infer<typeof videoSchema>;
@@ -143,33 +142,39 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
 
   const onSubmit = async (data: VideoFormData) => {
     try {
-      const youtubeVideoId = parseYoutubeUrl(data.youtube_url);
+      let youtubeVideoId = null;
       
-      if (!youtubeVideoId) {
-        toast({
-          title: '無效的 YouTube 連結',
-          description: '請輸入有效的 YouTube 連結',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Check for duplicate youtube_video_id (only if creating new or URL changed)
-      if (!video || video.youtube_url !== data.youtube_url) {
-        const { data: existing, error: checkError } = await supabase
-          .from('videos')
-          .select('*')
-          .eq('youtube_video_id', youtubeVideoId)
-          .single();
-
-        if (existing && existing.id !== video?.id) {
-          setDuplicateVideo(existing);
+      // 只在提供 YouTube URL 時才解析和檢查
+      if (data.youtube_url) {
+        youtubeVideoId = parseYoutubeUrl(data.youtube_url);
+        
+        // 只在有 URL 但無法解析時才提示錯誤
+        if (!youtubeVideoId) {
           toast({
-            title: '此影片已存在',
-            description: '資料庫中已有相同的 YouTube 影片',
+            title: '無效的 YouTube 連結',
+            description: '請輸入有效的 YouTube 連結或留空',
             variant: 'destructive',
           });
           return;
+        }
+
+        // Check for duplicate youtube_video_id (only if creating new or URL changed)
+        if (!video || video.youtube_url !== data.youtube_url) {
+          const { data: existing, error: checkError } = await supabase
+            .from('videos')
+            .select('*')
+            .eq('youtube_video_id', youtubeVideoId)
+            .maybeSingle();
+
+          if (existing && existing.id !== video?.id) {
+            setDuplicateVideo(existing);
+            toast({
+              title: '此影片已存在',
+              description: '資料庫中已有相同的 YouTube 影片',
+              variant: 'destructive',
+            });
+            return;
+          }
         }
       }
 
@@ -231,7 +236,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 name="brand"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>品牌 *</FormLabel>
+                    <FormLabel>品牌</FormLabel>
                     <FormControl>
                       <EditableSelect
                         value={field.value}
@@ -274,7 +279,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
               name="title_zh"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>中文標題 *</FormLabel>
+                  <FormLabel>中文標題</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -302,7 +307,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
               name="youtube_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>YouTube 連結 *</FormLabel>
+                  <FormLabel>YouTube 連結</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="https://www.youtube.com/watch?v=..." />
                   </FormControl>
@@ -317,7 +322,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 name="publish_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>發布日期 *</FormLabel>
+                    <FormLabel>發布日期</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -331,7 +336,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 name="media_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>類型 *</FormLabel>
+                    <FormLabel>類型</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -359,7 +364,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 name="dealer_visibility"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>可見度 *</FormLabel>
+                    <FormLabel>可見度</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -381,7 +386,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>狀態 *</FormLabel>
+                    <FormLabel>狀態</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -453,7 +458,7 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 name="source"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>來源 *</FormLabel>
+                    <FormLabel>來源</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
