@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 import { Link } from 'react-router-dom';
 import { EditableSelect } from './EditableSelect';
+import { Play, X } from 'lucide-react';
 
 type Video = Database['public']['Tables']['videos']['Row'];
 
@@ -73,6 +74,8 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
   const [brandOptions, setBrandOptions] = useState<string[]>(['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP']);
   const [modelOptions, setModelOptions] = useState<string[]>([]);
   const [channelOptions, setChannelOptions] = useState<string[]>([]);
+  const [previewVideoId, setPreviewVideoId] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
 
   // Load existing options from database
@@ -135,10 +138,26 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
         source_url: video.source_url || '',
         duration_sec: video.duration_sec || '' as any,
       } as any);
+      // 設定初始預覽
+      if (video.youtube_video_id) {
+        setPreviewVideoId(video.youtube_video_id);
+      }
     } else {
       form.reset();
+      setPreviewVideoId(null);
     }
   }, [video, form]);
+
+  // 監聽 YouTube URL 變化以更新預覽
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'youtube_url') {
+        const videoId = parseYoutubeUrl(value.youtube_url);
+        setPreviewVideoId(videoId);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const onSubmit = async (data: VideoFormData) => {
     try {
@@ -315,6 +334,47 @@ export function VideoFormDialog({ open, onClose, onSuccess, video }: VideoFormDi
                 </FormItem>
               )}
             />
+
+            {/* YouTube 影片預覽 */}
+            {previewVideoId && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Play className="h-4 w-4" />
+                    影片預覽
+                  </label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    {showPreview ? (
+                      <>
+                        <X className="h-4 w-4 mr-1" />
+                        隱藏
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-1" />
+                        顯示
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {showPreview && (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-muted">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${previewVideoId}`}
+                      title="YouTube video preview"
+                      className="absolute inset-0 w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
