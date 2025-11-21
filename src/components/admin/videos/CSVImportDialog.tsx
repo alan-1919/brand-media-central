@@ -277,10 +277,11 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
           <div className="bg-muted p-4 rounded-md text-sm space-y-2">
             <div className="font-semibold">匯入說明：</div>
             <ul className="list-disc pl-5 space-y-1">
+              <li>所有欄位皆為選填，可只填寫需要的資訊</li>
               <li>品牌：PEUGEOT、CITROËN、ALFA ROMEO、JEEP</li>
-              <li>YouTube 連結：支援 youtube.com 和 youtu.be 格式</li>
+              <li>YouTube 連結：支援各種格式，包括短影音連結</li>
               <li>發布日期：YYYY-MM-DD 格式（例：2024-01-15）</li>
-              <li>經銷商可見性：internal-only 或 dealer-visible</li>
+              <li>經銷商可見性：internal-only 或 dealer-visible（預設：dealer-visible）</li>
               <li>標籤：多個標籤用分號(;)分隔</li>
               <li>布林值欄位（captions, hero）：填 true 或 false</li>
             </ul>
