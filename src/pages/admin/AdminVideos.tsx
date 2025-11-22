@@ -112,7 +112,12 @@ export default function AdminVideos() {
     <AdminLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">影片管理</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold">影片管理</h1>
+            <span className="text-muted-foreground text-lg">
+              {loading ? '載入中...' : `共 ${videos.length} 個影片`}
+            </span>
+          </div>
           <div className="flex gap-2">
             <Button onClick={() => setIsFormOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
