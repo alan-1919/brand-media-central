@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface VideoGridProps {
   videos: Video[];
@@ -44,6 +45,8 @@ export default function VideoGrid({
   onPageChange,
   onVideoClick,
 }: VideoGridProps) {
+  const [hoveredVideoId, setHoveredVideoId] = useState<string | null>(null);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -88,15 +91,27 @@ export default function VideoGrid({
                 key={video.id}
                 className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => onVideoClick(video)}
+                onMouseEnter={() => setHoveredVideoId(video.id)}
+                onMouseLeave={() => setHoveredVideoId(null)}
               >
                 <div className="relative aspect-video bg-muted">
-                  <img
-                    src={video.thumbnail_url || `https://i.ytimg.com/vi/${video.youtube_video_id}/maxresdefault.jpg`}
-                    alt={video.title_zh}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                  {video.duration_sec && (
+                  {hoveredVideoId === video.id && video.youtube_video_id ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=1&mute=1&controls=0&modestbranding=1`}
+                      title={video.title_zh}
+                      className="w-full h-full"
+                      allow="autoplay; encrypted-media"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <img
+                      src={video.thumbnail_url || `https://i.ytimg.com/vi/${video.youtube_video_id}/maxresdefault.jpg`}
+                      alt={video.title_zh}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  )}
+                  {video.duration_sec && hoveredVideoId !== video.id && (
                     <div className="absolute bottom-2 right-2 bg-black/80 text-white px-2 py-1 rounded text-xs font-medium">
                       {formatDuration(video.duration_sec)}
                     </div>
