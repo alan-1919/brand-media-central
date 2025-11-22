@@ -97,7 +97,7 @@ export default function VideoGrid({
                 <div className="relative aspect-video bg-muted">
                   {hoveredVideoId === video.id && video.youtube_video_id ? (
                     <iframe
-                      src={`https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=1&mute=1&controls=0&modestbranding=1`}
+                      src={`https://www.youtube.com/embed/${video.youtube_video_id}?autoplay=1&mute=1&controls=1&modestbranding=1`}
                       title={video.title_zh}
                       className="w-full h-full"
                       allow="autoplay; encrypted-media"
