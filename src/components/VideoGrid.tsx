@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Loader2, Calendar, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Calendar, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -128,6 +128,12 @@ export default function VideoGrid({
                   </div>
                   <h3 className="font-medium line-clamp-2 text-sm">{video.title_zh}</h3>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {video.views !== null && video.views !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" />
+                        {video.views.toLocaleString()}
+                      </div>
+                    )}
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {new Date(video.publish_date).toLocaleDateString('zh-TW')}
