@@ -12,6 +12,7 @@ interface YouTubeVideoMetadata {
   channelName: string | null;
   thumbnailUrl: string | null;
   duration: number | null;
+  viewCount: number | null;
 }
 
 function parseDuration(duration: string): number | null {
@@ -52,7 +53,7 @@ serve(async (req) => {
 
     // Fetch video details from YouTube Data API
     const idsParam = videoIds.join(',');
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${idsParam}&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${idsParam}&key=${apiKey}`;
     
     console.log(`Fetching metadata for ${videoIds.length} videos`);
     
@@ -78,11 +79,13 @@ serve(async (req) => {
           channelName: null,
           thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
           duration: null,
+          viewCount: null,
         };
       }
 
       const snippet = item.snippet;
       const contentDetails = item.contentDetails;
+      const statistics = item.statistics;
 
       return {
         videoId,
@@ -93,6 +96,7 @@ serve(async (req) => {
                       snippet?.thumbnails?.high?.url || 
                       `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
         duration: contentDetails?.duration ? parseDuration(contentDetails.duration) : null,
+        viewCount: statistics?.viewCount ? parseInt(statistics.viewCount, 10) : null,
       };
     });
 
