@@ -27,6 +27,7 @@ interface YouTubeMetadata {
   channelName: string | null;
   thumbnailUrl: string | null;
   duration: number | null;
+  viewCount: number | null;
 }
 
 export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogProps) {
@@ -65,6 +66,7 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
           channelName: null,
           thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
           duration: null,
+          viewCount: null,
         }));
       }
 
@@ -78,6 +80,7 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
         channelName: null,
         thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
         duration: null,
+        viewCount: null,
       }));
     }
   };
@@ -175,6 +178,7 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
           channel_name: metadata?.channelName || null,
           thumbnail_url: metadata?.thumbnailUrl || `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`,
           duration_sec: metadata?.duration || null,
+          views: metadata?.viewCount || 0,
           status: 'draft',
         });
 
