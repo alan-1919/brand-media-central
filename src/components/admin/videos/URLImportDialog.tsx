@@ -20,6 +20,15 @@ interface URLImportDialogProps {
   onSuccess: () => void;
 }
 
+interface YouTubeMetadata {
+  videoId: string;
+  title: string | null;
+  publishDate: string | null;
+  channelName: string | null;
+  thumbnailUrl: string | null;
+  duration: number | null;
+}
+
 export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogProps) {
   const [urls, setUrls] = useState('');
   const [importing, setImporting] = useState(false);
@@ -31,6 +40,7 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
       /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
       /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
       /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
+      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
     ];
 
     for (const pattern of patterns) {
@@ -38,6 +48,38 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
       if (match) return match[1];
     }
     return null;
+  };
+
+  const fetchYouTubeMetadata = async (videoIds: string[]): Promise<YouTubeMetadata[]> => {
+    try {
+      const response = await supabase.functions.invoke('fetch-youtube-metadata', {
+        body: { videoIds },
+      });
+
+      if (response.error) {
+        console.error('Error fetching YouTube metadata:', response.error);
+        return videoIds.map(videoId => ({
+          videoId,
+          title: null,
+          publishDate: null,
+          channelName: null,
+          thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+          duration: null,
+        }));
+      }
+
+      return response.data?.videos || [];
+    } catch (error) {
+      console.error('Error calling fetch-youtube-metadata:', error);
+      return videoIds.map(videoId => ({
+        videoId,
+        title: null,
+        publishDate: null,
+        channelName: null,
+        thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        duration: null,
+      }));
+    }
   };
 
   const handleImport = async () => {
@@ -60,39 +102,86 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
     const newErrors: string[] = [];
     let successCount = 0;
 
+    // Extract all video IDs and validate URLs
+    const validVideos: { url: string; videoId: string }[] = [];
     for (const url of urlList) {
+      const videoId = extractYouTubeVideoId(url);
+      if (!videoId) {
+        newErrors.push(`無效的 YouTube 連結: ${url}`);
+      } else {
+        validVideos.push({ url, videoId });
+      }
+    }
+
+    if (validVideos.length === 0) {
+      setImporting(false);
+      setErrors(newErrors);
+      toast({
+        title: '匯入失敗',
+        description: '沒有有效的 YouTube 連結',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check for existing videos
+    const videoIdsToCheck = validVideos.map(v => v.videoId);
+    const { data: existingVideos } = await supabase
+      .from('videos')
+      .select('youtube_video_id')
+      .in('youtube_video_id', videoIdsToCheck);
+
+    const existingIds = new Set(existingVideos?.map(v => v.youtube_video_id) || []);
+    const newVideos = validVideos.filter(v => !existingIds.has(v.videoId));
+
+    // Report existing videos
+    for (const video of validVideos) {
+      if (existingIds.has(video.videoId)) {
+        newErrors.push(`影片已存在: ${video.url}`);
+      }
+    }
+
+    if (newVideos.length === 0) {
+      setImporting(false);
+      setErrors(newErrors);
+      toast({
+        title: '匯入失敗',
+        description: '所有影片都已存在',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Fetch metadata for new videos
+    const videoIds = newVideos.map(v => v.videoId);
+    const metadataList = await fetchYouTubeMetadata(videoIds);
+
+    // Create a map for quick lookup
+    const metadataMap = new Map<string, YouTubeMetadata>();
+    for (const metadata of metadataList) {
+      metadataMap.set(metadata.videoId, metadata);
+    }
+
+    // Insert videos with metadata
+    for (const video of newVideos) {
       try {
-        const videoId = extractYouTubeVideoId(url);
-        
-        if (!videoId) {
-          newErrors.push(`無效的 YouTube 連結: ${url}`);
-          continue;
-        }
+        const metadata = metadataMap.get(video.videoId);
 
-        // Check if video already exists
-        const { data: existing } = await supabase
-          .from('videos')
-          .select('id')
-          .eq('youtube_video_id', videoId)
-          .single();
-
-        if (existing) {
-          newErrors.push(`影片已存在: ${url}`);
-          continue;
-        }
-
-        // Insert video with minimal data
         const { error } = await supabase.from('videos').insert({
-          youtube_url: url,
-          youtube_video_id: videoId,
-          thumbnail_url: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+          youtube_url: video.url,
+          youtube_video_id: video.videoId,
+          title_zh: metadata?.title || null,
+          publish_date: metadata?.publishDate || null,
+          channel_name: metadata?.channelName || null,
+          thumbnail_url: metadata?.thumbnailUrl || `https://img.youtube.com/vi/${video.videoId}/maxresdefault.jpg`,
+          duration_sec: metadata?.duration || null,
           status: 'draft',
         });
 
         if (error) throw error;
         successCount++;
       } catch (error: any) {
-        newErrors.push(`匯入失敗 (${url}): ${error.message}`);
+        newErrors.push(`匯入失敗 (${video.url}): ${error.message}`);
       }
     }
 
@@ -102,7 +191,7 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
     if (successCount > 0) {
       toast({
         title: '匯入成功',
-        description: `成功匯入 ${successCount} 個影片`,
+        description: `成功匯入 ${successCount} 個影片，已自動獲取影片資訊`,
       });
       
       if (newErrors.length === 0) {
@@ -130,7 +219,7 @@ export function URLImportDialog({ open, onClose, onSuccess }: URLImportDialogPro
         <DialogHeader>
           <DialogTitle>URL 匯入</DialogTitle>
           <DialogDescription>
-            輸入 YouTube 影片連結，每行一個連結。影片將以草稿狀態匯入，請之後補充完整資訊。
+            輸入 YouTube 影片連結，每行一個連結。系統將自動獲取影片標題、發佈日期、頻道名稱等資訊。影片將以草稿狀態匯入。
           </DialogDescription>
         </DialogHeader>
 
