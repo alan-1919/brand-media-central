@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Upload, Link } from 'lucide-react';
+import { Plus, Search, Upload, Link, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +32,7 @@ export default function AdminVideos() {
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [isCSVImportOpen, setIsCSVImportOpen] = useState(false);
   const [isURLImportOpen, setIsURLImportOpen] = useState(false);
+  const [isRefreshingViews, setIsRefreshingViews] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -116,6 +117,79 @@ export default function AdminVideos() {
     setIsBulkEditOpen(true);
   };
 
+  const handleRefreshViews = async () => {
+    setIsRefreshingViews(true);
+    try {
+      // Get all videos with youtube_video_id
+      const { data: videosToUpdate, error: fetchError } = await supabase
+        .from('videos')
+        .select('id, youtube_video_id')
+        .not('youtube_video_id', 'is', null);
+
+      if (fetchError) throw fetchError;
+
+      if (!videosToUpdate || videosToUpdate.length === 0) {
+        toast({
+          title: '沒有影片需要更新',
+          description: '沒有找到任何 YouTube 影片',
+        });
+        setIsRefreshingViews(false);
+        return;
+      }
+
+      // Batch video IDs in groups of 50 (YouTube API limit)
+      const batchSize = 50;
+      let updatedCount = 0;
+
+      for (let i = 0; i < videosToUpdate.length; i += batchSize) {
+        const batch = videosToUpdate.slice(i, i + batchSize);
+        const videoIds = batch.map(v => v.youtube_video_id).filter(Boolean) as string[];
+
+        if (videoIds.length === 0) continue;
+
+        const response = await supabase.functions.invoke('fetch-youtube-metadata', {
+          body: { videoIds },
+        });
+
+        if (response.error) {
+          console.error('Error fetching metadata:', response.error);
+          continue;
+        }
+
+        const metadataList = response.data?.videos || [];
+
+        // Update each video's view count
+        for (const metadata of metadataList) {
+          if (metadata.viewCount !== null) {
+            const videoRecord = batch.find(v => v.youtube_video_id === metadata.videoId);
+            if (videoRecord) {
+              const { error: updateError } = await supabase
+                .from('videos')
+                .update({ views: metadata.viewCount })
+                .eq('id', videoRecord.id);
+
+              if (!updateError) updatedCount++;
+            }
+          }
+        }
+      }
+
+      toast({
+        title: '更新完成',
+        description: `已更新 ${updatedCount} 個影片的觀看次數`,
+      });
+      fetchVideos();
+    } catch (error: any) {
+      toast({
+        title: '更新失敗',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRefreshingViews(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -128,6 +202,10 @@ export default function AdminVideos() {
             </Button>
             <Button variant="outline" onClick={handleBulkEdit}>
               批量編輯
+            </Button>
+            <Button variant="outline" onClick={handleRefreshViews} disabled={isRefreshingViews}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingViews ? 'animate-spin' : ''}`} />
+              更新觀看次數
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
