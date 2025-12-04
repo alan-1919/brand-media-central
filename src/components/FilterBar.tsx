@@ -5,7 +5,6 @@ interface FilterBarProps {
   filters: {
     mediaType: string;
     year: string;
-    language: string;
     source: string;
     captions: string;
     aspectRatio: string;
@@ -22,7 +21,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   const years = Array.from({ length: currentYear - 2004 }, (_, i) => (currentYear - i).toString());
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <div className="space-y-2">
         <Label className="text-sm font-medium">影片類型</Label>
         <Select value={filters.mediaType} onValueChange={(v) => updateFilter('mediaType', v)}>
@@ -58,21 +57,6 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">語言</Label>
-        <Select value={filters.language} onValueChange={(v) => updateFilter('language', v)}>
-          <SelectTrigger>
-            <SelectValue placeholder="全部" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部</SelectItem>
-            <SelectItem value="zh-TW">繁體中文</SelectItem>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="ja">日本語</SelectItem>
-            <SelectItem value="fr">Français</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
       <div className="space-y-2">
         <Label className="text-sm font-medium">來源</Label>

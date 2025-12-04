@@ -53,7 +53,6 @@ export default function Index() {
   const [filters, setFilters] = useState({
     mediaType: searchParams.get('mediaType') || 'all',
     year: searchParams.get('year') || 'all',
-    language: searchParams.get('language') || 'all',
     source: searchParams.get('source') || 'all',
     captions: searchParams.get('captions') || 'all',
     aspectRatio: searchParams.get('aspectRatio') || 'all',
@@ -76,7 +75,6 @@ export default function Index() {
     if (searchQuery) params.search = searchQuery;
     if (filters.mediaType && filters.mediaType !== 'all') params.mediaType = filters.mediaType;
     if (filters.year && filters.year !== 'all') params.year = filters.year;
-    if (filters.language && filters.language !== 'all') params.language = filters.language;
     if (filters.source && filters.source !== 'all') params.source = filters.source;
     if (filters.captions && filters.captions !== 'all') params.captions = filters.captions;
     if (filters.aspectRatio && filters.aspectRatio !== 'all') params.aspectRatio = filters.aspectRatio;
@@ -110,9 +108,6 @@ export default function Index() {
       }
       if (filters.year && filters.year !== 'all') {
         query = query.gte('publish_date', `${filters.year}-01-01`).lte('publish_date', `${filters.year}-12-31`);
-      }
-      if (filters.language && filters.language !== 'all') {
-        query = query.eq('language', filters.language as any);
       }
       if (filters.source && filters.source !== 'all') {
         query = query.eq('source', filters.source as any);
