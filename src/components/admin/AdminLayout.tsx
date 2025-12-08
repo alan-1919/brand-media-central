@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import Navbar from '@/components/Navbar';
-import { Video, Users } from 'lucide-react';
+import { Video, Users, BarChart3 } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,6 +13,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   
   const navItems = [
     { path: '/admin/videos', label: '影片管理', icon: Video },
+    { path: '/admin/analytics', label: '影片分析', icon: BarChart3 },
     { path: '/admin/users', label: '用戶管理', icon: Users },
   ];
 
