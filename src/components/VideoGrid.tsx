@@ -3,9 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Loader2, Calendar, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Calendar, Eye, Share2, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface VideoGridProps {
   videos: Video[];
@@ -127,20 +128,41 @@ export default function VideoGrid({
                     )}
                   </div>
                   <h3 className="font-medium line-clamp-2 text-sm">{video.title_zh}</h3>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    {video.views !== null && video.views !== undefined && (
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {video.views.toLocaleString()}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(video.publish_date).toLocaleDateString('zh-TW')}
+                  {video.channel_name && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <User className="h-3 w-3" />
+                      <span className="truncate">{video.channel_name}</span>
                     </div>
-                    {video.captions && (
-                      <Badge variant="outline" className="text-xs">CC</Badge>
-                    )}
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {video.views !== null && video.views !== undefined && (
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {video.views.toLocaleString()}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(video.publish_date).toLocaleDateString('zh-TW')}
+                      </div>
+                      {video.captions && (
+                        <Badge variant="outline" className="text-xs">CC</Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = video.youtube_url || `https://www.youtube.com/watch?v=${video.youtube_video_id}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success('已複製連結');
+                      }}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {video.tags.slice(0, 3).map((tag, i) => (
