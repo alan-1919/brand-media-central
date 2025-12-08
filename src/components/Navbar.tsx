@@ -14,7 +14,7 @@ export default function Navbar() {
         
         <div className="flex items-center gap-4">
           {user && (role === 'admin' || role === 'editor') && <Button variant="ghost" size="sm" asChild>
-              <Link to="/admin/videos">
+              <Link to="/admin/videos" className="bg-white">
                 <Settings className="h-4 w-4 mr-2" />
                 Admin
               </Link>
