@@ -58,7 +58,7 @@ export default function AdminAnalytics() {
 
       if (error) throw error;
 
-      const metadata = data?.metadata || [];
+      const metadata = data?.videos || [];
       let updatedCount = 0;
 
       for (const video of metadata) {
