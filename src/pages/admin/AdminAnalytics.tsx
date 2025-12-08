@@ -1,10 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Eye, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Eye, TrendingUp, RefreshCw, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 const brandColors: Record<string, string> = {
   'PEUGEOT': 'bg-[#1C2D5A]',
@@ -14,19 +18,69 @@ const brandColors: Record<string, string> = {
 };
 
 export default function AdminAnalytics() {
-  const { data: topVideos, isLoading } = useQuery({
+  const queryClient = useQueryClient();
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const { data: topVideos, isLoading, dataUpdatedAt } = useQuery({
     queryKey: ['top-videos-by-views'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('videos')
-        .select('id, title_zh, title_en, brand, model, views, channel_name, publish_date')
+        .select('id, title_zh, title_en, brand, model, views, channel_name, publish_date, youtube_video_id')
         .order('views', { ascending: false, nullsFirst: false })
         .limit(10);
       
       if (error) throw error;
+      setLastUpdated(new Date());
       return data;
     },
+    refetchInterval: 3600000, // Auto-refresh every hour (3600000ms)
   });
+
+  const handleRefreshViews = async () => {
+    if (!topVideos || topVideos.length === 0) return;
+    
+    setIsRefreshing(true);
+    try {
+      const videoIds = topVideos
+        .filter(v => v.youtube_video_id)
+        .map(v => v.youtube_video_id);
+
+      if (videoIds.length === 0) {
+        toast.error('沒有可更新的影片');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('fetch-youtube-metadata', {
+        body: { videoIds },
+      });
+
+      if (error) throw error;
+
+      const metadata = data?.metadata || [];
+      let updatedCount = 0;
+
+      for (const video of metadata) {
+        if (video.viewCount !== null) {
+          const { error: updateError } = await supabase
+            .from('videos')
+            .update({ views: video.viewCount })
+            .eq('youtube_video_id', video.videoId);
+
+          if (!updateError) updatedCount++;
+        }
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ['top-videos-by-views'] });
+      toast.success(`已更新 ${updatedCount} 部影片的觀看次數`);
+    } catch (error) {
+      console.error('Error refreshing views:', error);
+      toast.error('更新觀看次數失敗');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <AdminLayout>
@@ -35,10 +89,29 @@ export default function AdminAnalytics() {
         
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              觀看次數排行榜 (Top 10)
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  觀看次數排行榜 (Top 10)
+                </CardTitle>
+                <CardDescription className="flex items-center gap-1 mt-1">
+                  <Clock className="h-3 w-3" />
+                  {lastUpdated 
+                    ? `最後更新：${format(lastUpdated, 'yyyy/MM/dd HH:mm:ss')}（每小時自動更新）`
+                    : '載入中...'}
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefreshViews}
+                disabled={isRefreshing || isLoading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? '更新中...' : '更新觀看次數'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
