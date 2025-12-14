@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,7 +22,8 @@ export default function AdminAnalytics() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data: topVideos, isLoading, dataUpdatedAt } = useQuery({
+  // Fetch top videos from database
+  const { data: topVideos, isLoading, refetch } = useQuery({
     queryKey: ['top-videos-by-views'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -32,11 +33,58 @@ export default function AdminAnalytics() {
         .limit(10);
       
       if (error) throw error;
-      setLastUpdated(new Date());
       return data;
     },
-    refetchInterval: 3600000, // Auto-refresh every hour (3600000ms)
   });
+
+  // Function to update view counts from YouTube API
+  const updateViewCountsFromYouTube = async () => {
+    if (!topVideos || topVideos.length === 0) return;
+    
+    const videoIds = topVideos
+      .filter(v => v.youtube_video_id)
+      .map(v => v.youtube_video_id);
+
+    if (videoIds.length === 0) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-youtube-metadata', {
+        body: { videoIds },
+      });
+
+      if (error) throw error;
+
+      const metadata = data?.videos || [];
+
+      for (const video of metadata) {
+        if (video.viewCount !== null) {
+          await supabase
+            .from('videos')
+            .update({ views: video.viewCount })
+            .eq('youtube_video_id', video.videoId);
+        }
+      }
+
+      await refetch();
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Auto-update view counts failed:', error);
+    }
+  };
+
+  // Auto-update view counts every hour
+  useEffect(() => {
+    if (topVideos && topVideos.length > 0 && !lastUpdated) {
+      // Initial update when data first loads
+      updateViewCountsFromYouTube();
+    }
+
+    const interval = setInterval(() => {
+      updateViewCountsFromYouTube();
+    }, 3600000); // Every hour
+
+    return () => clearInterval(interval);
+  }, [topVideos]);
 
   const handleRefreshViews = async () => {
     if (!topVideos || topVideos.length === 0) return;
