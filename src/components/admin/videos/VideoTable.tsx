@@ -131,7 +131,7 @@ export function VideoTable({
                 <TableCell>
                   <Checkbox checked={selectedVideos.includes(video.id)} onCheckedChange={() => toggleVideo(video.id)} />
                 </TableCell>
-                <TableCell className="text-destructive">
+                <TableCell className="text-inherit">
                   <Badge style={{
                 backgroundColor: brandColors[video.brand as keyof typeof brandColors],
                 color: 'black'
