@@ -6,10 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-
 type Video = Database['public']['Tables']['videos']['Row'];
 type SortField = 'updated_at' | 'brand' | 'model' | 'publish_date';
-
 interface VideoTableProps {
   videos: Video[];
   loading: boolean;
@@ -25,14 +23,12 @@ interface VideoTableProps {
   sortDirection: 'asc' | 'desc';
   onSort: (field: SortField) => void;
 }
-
 const brandColors = {
   PEUGEOT: 'hsl(var(--brand-peugeot))',
   CITROËN: 'hsl(var(--brand-citroen))',
   'ALFA ROMEO': 'hsl(var(--brand-alfa))',
-  JEEP: 'hsl(var(--brand-jeep))',
+  JEEP: 'hsl(var(--brand-jeep))'
 };
-
 export function VideoTable({
   videos,
   loading,
@@ -46,7 +42,7 @@ export function VideoTable({
   onStatusChange,
   sortField,
   sortDirection,
-  onSort,
+  onSort
 }: VideoTableProps) {
   const toggleAll = () => {
     if (selectedVideos.length === videos.length) {
@@ -55,7 +51,6 @@ export function VideoTable({
       onSelectedVideosChange(videos.map(v => v.id));
     }
   };
-
   const toggleVideo = (id: string) => {
     if (selectedVideos.includes(id)) {
       onSelectedVideosChange(selectedVideos.filter(vid => vid !== id));
@@ -63,13 +58,10 @@ export function VideoTable({
       onSelectedVideosChange([...selectedVideos, id]);
     }
   };
-
   if (loading) {
     return <div className="text-center py-8">載入中...</div>;
   }
-
-  return (
-    <div className="space-y-4">
+  return <div className="space-y-4">
       <div className="flex gap-4">
         <Select value={selectedBrand} onValueChange={onBrandChange}>
           <SelectTrigger className="w-48">
@@ -101,85 +93,49 @@ export function VideoTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedVideos.length === videos.length && videos.length > 0}
-                  onCheckedChange={toggleAll}
-                />
+                <Checkbox checked={selectedVideos.length === videos.length && videos.length > 0} onCheckedChange={toggleAll} />
               </TableHead>
               <TableHead>
-                <Button
-                  variant="ghost"
-                  className="h-8 px-2 hover:bg-muted"
-                  onClick={() => onSort('brand')}
-                >
+                <Button variant="ghost" className="h-8 px-2 hover:bg-muted" onClick={() => onSort('brand')}>
                   品牌
-                  {sortField === 'brand' ? (
-                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                  )}
+                  {sortField === 'brand' ? sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" /> : <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />}
                 </Button>
               </TableHead>
               <TableHead>
-                <Button
-                  variant="ghost"
-                  className="h-8 px-2 hover:bg-muted"
-                  onClick={() => onSort('model')}
-                >
+                <Button variant="ghost" className="h-8 px-2 hover:bg-muted" onClick={() => onSort('model')}>
                   車型
-                  {sortField === 'model' ? (
-                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                  )}
+                  {sortField === 'model' ? sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" /> : <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />}
                 </Button>
               </TableHead>
               <TableHead>標題</TableHead>
               <TableHead>類型</TableHead>
               <TableHead>
-                <Button
-                  variant="ghost"
-                  className="h-8 px-2 hover:bg-muted"
-                  onClick={() => onSort('publish_date')}
-                >
+                <Button variant="ghost" className="h-8 px-2 hover:bg-muted" onClick={() => onSort('publish_date')}>
                   發布日期
-                  {sortField === 'publish_date' ? (
-                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                  )}
+                  {sortField === 'publish_date' ? sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" /> : <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />}
                 </Button>
               </TableHead>
               <TableHead>可見度</TableHead>
               <TableHead>來源</TableHead>
               <TableHead>
-                <Button
-                  variant="ghost"
-                  className="h-8 px-2 hover:bg-muted"
-                  onClick={() => onSort('updated_at')}
-                >
+                <Button variant="ghost" className="h-8 px-2 hover:bg-muted" onClick={() => onSort('updated_at')}>
                   更新時間
-                  {sortField === 'updated_at' ? (
-                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
-                  ) : (
-                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                  )}
+                  {sortField === 'updated_at' ? sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" /> : <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />}
                 </Button>
               </TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {videos.map((video) => (
-              <TableRow key={video.id}>
+            {videos.map(video => <TableRow key={video.id}>
                 <TableCell>
-                  <Checkbox
-                    checked={selectedVideos.includes(video.id)}
-                    onCheckedChange={() => toggleVideo(video.id)}
-                  />
+                  <Checkbox checked={selectedVideos.includes(video.id)} onCheckedChange={() => toggleVideo(video.id)} />
                 </TableCell>
-                <TableCell>
-                  <Badge style={{ backgroundColor: brandColors[video.brand as keyof typeof brandColors], color: 'black' }}>
+                <TableCell className="text-destructive">
+                  <Badge style={{
+                backgroundColor: brandColors[video.brand as keyof typeof brandColors],
+                color: 'black'
+              }}>
                     {video.brand}
                   </Badge>
                 </TableCell>
@@ -222,11 +178,9 @@ export function VideoTable({
                     </AlertDialog>
                   </div>
                 </TableCell>
-              </TableRow>
-            ))}
+              </TableRow>)}
           </TableBody>
         </Table>
       </div>
-    </div>
-  );
+    </div>;
 }
