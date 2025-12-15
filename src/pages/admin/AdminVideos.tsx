@@ -26,6 +26,8 @@ export default function AdminVideos() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [sortField, setSortField] = useState<'updated_at' | 'brand' | 'model'>('updated_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
@@ -37,7 +39,7 @@ export default function AdminVideos() {
 
   useEffect(() => {
     fetchVideos();
-  }, [selectedBrand, selectedStatus, searchQuery]);
+  }, [selectedBrand, selectedStatus, searchQuery, sortField, sortDirection]);
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -56,7 +58,7 @@ export default function AdminVideos() {
         query = query.or(`title_zh.ilike.%${searchQuery}%,title_en.ilike.%${searchQuery}%,model.ilike.%${searchQuery}%,source_account.ilike.%${searchQuery}%`);
       }
 
-      const { data, error } = await query.order('updated_at', { ascending: false });
+      const { data, error } = await query.order(sortField, { ascending: sortDirection === 'asc' });
 
       if (error) throw error;
       setVideos(data || []);
@@ -255,6 +257,16 @@ export default function AdminVideos() {
           onBrandChange={setSelectedBrand}
           selectedStatus={selectedStatus}
           onStatusChange={setSelectedStatus}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={(field) => {
+            if (sortField === field) {
+              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            } else {
+              setSortField(field);
+              setSortDirection('desc');
+            }
+          }}
         />
 
         <VideoFormDialog

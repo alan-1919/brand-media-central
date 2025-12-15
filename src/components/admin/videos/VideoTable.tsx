@@ -3,11 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type Video = Database['public']['Tables']['videos']['Row'];
+type SortField = 'updated_at' | 'brand' | 'model';
 
 interface VideoTableProps {
   videos: Video[];
@@ -20,6 +21,9 @@ interface VideoTableProps {
   onBrandChange: (brand: string) => void;
   selectedStatus: string;
   onStatusChange: (status: string) => void;
+  sortField: SortField;
+  sortDirection: 'asc' | 'desc';
+  onSort: (field: SortField) => void;
 }
 
 const brandColors = {
@@ -40,6 +44,9 @@ export function VideoTable({
   onBrandChange,
   selectedStatus,
   onStatusChange,
+  sortField,
+  sortDirection,
+  onSort,
 }: VideoTableProps) {
   const toggleAll = () => {
     if (selectedVideos.length === videos.length) {
@@ -99,14 +106,53 @@ export function VideoTable({
                   onCheckedChange={toggleAll}
                 />
               </TableHead>
-              <TableHead>品牌</TableHead>
-              <TableHead>車型</TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 hover:bg-muted"
+                  onClick={() => onSort('brand')}
+                >
+                  品牌
+                  {sortField === 'brand' ? (
+                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
+                  ) : (
+                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                  )}
+                </Button>
+              </TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 hover:bg-muted"
+                  onClick={() => onSort('model')}
+                >
+                  車型
+                  {sortField === 'model' ? (
+                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
+                  ) : (
+                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                  )}
+                </Button>
+              </TableHead>
               <TableHead>標題</TableHead>
               <TableHead>類型</TableHead>
               <TableHead>發布日期</TableHead>
               <TableHead>可見度</TableHead>
               <TableHead>來源</TableHead>
-              <TableHead>更新時間</TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 hover:bg-muted"
+                  onClick={() => onSort('updated_at')}
+                >
+                  更新時間
+                  {sortField === 'updated_at' ? (
+                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
+                  ) : (
+                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                  )}
+                </Button>
+              </TableHead>
               <TableHead className="text-right">操作</TableHead>
             </TableRow>
           </TableHeader>
