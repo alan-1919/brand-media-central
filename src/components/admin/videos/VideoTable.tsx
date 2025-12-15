@@ -179,7 +179,7 @@ export function VideoTable({
                   />
                 </TableCell>
                 <TableCell>
-                  <Badge style={{ backgroundColor: brandColors[video.brand as keyof typeof brandColors], color: 'white' }}>
+                  <Badge style={{ backgroundColor: brandColors[video.brand as keyof typeof brandColors], color: 'black' }}>
                     {video.brand}
                   </Badge>
                 </TableCell>
