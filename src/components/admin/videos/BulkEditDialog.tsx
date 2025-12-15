@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Constants } from '@/integrations/supabase/types';
 
 interface BulkEditDialogProps {
   open: boolean;
@@ -15,6 +16,8 @@ interface BulkEditDialogProps {
 }
 
 interface BulkEditFormData {
+  brand?: string;
+  model?: string;
   dealer_visibility?: string;
   tags?: string;
   campaign?: string;
@@ -27,6 +30,14 @@ export function BulkEditDialog({ open, onClose, onSuccess, selectedVideoIds }: B
   const onSubmit = async (data: BulkEditFormData) => {
     try {
       const updates: any = {};
+
+      if (data.brand && data.brand !== 'no-change') {
+        updates.brand = data.brand;
+      }
+
+      if (data.model) {
+        updates.model = data.model;
+      }
 
       if (data.dealer_visibility && data.dealer_visibility !== 'no-change') {
         updates.dealer_visibility = data.dealer_visibility;
@@ -79,6 +90,42 @@ export function BulkEditDialog({ open, onClose, onSuccess, selectedVideoIds }: B
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="brand"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>品牌</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="不變更" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="no-change">不變更</SelectItem>
+                      {Constants.public.Enums.brand_enum.map((brand) => (
+                        <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>車型（將覆蓋現有車型）</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="輸入車型名稱" />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="dealer_visibility"
