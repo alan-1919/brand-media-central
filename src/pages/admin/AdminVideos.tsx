@@ -26,7 +26,7 @@ export default function AdminVideos() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [sortField, setSortField] = useState<'updated_at' | 'brand' | 'model'>('updated_at');
+  const [sortField, setSortField] = useState<'updated_at' | 'brand' | 'model' | 'publish_date'>('updated_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
