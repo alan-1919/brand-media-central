@@ -135,7 +135,7 @@ export function VideoTable({
                   <Badge style={{
                 backgroundColor: brandColors[video.brand as keyof typeof brandColors],
                 color: 'black'
-              }}>
+              }} className="bg-white text-inherit">
                     {video.brand}
                   </Badge>
                 </TableCell>
