@@ -8,7 +8,7 @@ import { Database } from '@/integrations/supabase/types';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 type Video = Database['public']['Tables']['videos']['Row'];
-type SortField = 'updated_at' | 'brand' | 'model';
+type SortField = 'updated_at' | 'brand' | 'model' | 'publish_date';
 
 interface VideoTableProps {
   videos: Video[];
@@ -136,7 +136,20 @@ export function VideoTable({
               </TableHead>
               <TableHead>標題</TableHead>
               <TableHead>類型</TableHead>
-              <TableHead>發布日期</TableHead>
+              <TableHead>
+                <Button
+                  variant="ghost"
+                  className="h-8 px-2 hover:bg-muted"
+                  onClick={() => onSort('publish_date')}
+                >
+                  發布日期
+                  {sortField === 'publish_date' ? (
+                    sortDirection === 'asc' ? <ArrowUp className="ml-1 h-4 w-4" /> : <ArrowDown className="ml-1 h-4 w-4" />
+                  ) : (
+                    <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                  )}
+                </Button>
+              </TableHead>
               <TableHead>可見度</TableHead>
               <TableHead>來源</TableHead>
               <TableHead>
