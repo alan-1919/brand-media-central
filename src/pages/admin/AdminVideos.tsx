@@ -26,6 +26,8 @@ export default function AdminVideos() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedChannel, setSelectedChannel] = useState<string>('all');
+  const [channels, setChannels] = useState<string[]>([]);
   const [sortField, setSortField] = useState<'updated_at' | 'brand' | 'model' | 'publish_date'>('updated_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -39,7 +41,28 @@ export default function AdminVideos() {
 
   useEffect(() => {
     fetchVideos();
-  }, [selectedBrand, selectedStatus, searchQuery, sortField, sortDirection]);
+    fetchChannels();
+  }, []);
+
+  useEffect(() => {
+    fetchVideos();
+  }, [selectedBrand, selectedStatus, selectedChannel, searchQuery, sortField, sortDirection]);
+
+  const fetchChannels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('videos')
+        .select('channel_name')
+        .not('channel_name', 'is', null);
+
+      if (error) throw error;
+
+      const uniqueChannels = [...new Set(data?.map(v => v.channel_name).filter(Boolean) as string[])].sort();
+      setChannels(uniqueChannels);
+    } catch (error) {
+      console.error('Error fetching channels:', error);
+    }
+  };
 
   const fetchVideos = async () => {
     setLoading(true);
@@ -56,6 +79,10 @@ export default function AdminVideos() {
 
       if (searchQuery) {
         query = query.or(`title_zh.ilike.%${searchQuery}%,title_en.ilike.%${searchQuery}%,model.ilike.%${searchQuery}%,source_account.ilike.%${searchQuery}%`);
+      }
+
+      if (selectedChannel !== 'all') {
+        query = query.eq('channel_name', selectedChannel);
       }
 
       const { data, error } = await query.order(sortField, { ascending: sortDirection === 'asc' });
@@ -257,6 +284,9 @@ export default function AdminVideos() {
           onBrandChange={setSelectedBrand}
           selectedStatus={selectedStatus}
           onStatusChange={setSelectedStatus}
+          selectedChannel={selectedChannel}
+          onChannelChange={setSelectedChannel}
+          channels={channels}
           sortField={sortField}
           sortDirection={sortDirection}
           onSort={(field) => {

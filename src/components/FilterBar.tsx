@@ -8,11 +8,13 @@ interface FilterBarProps {
     source: string;
     captions: string;
     aspectRatio: string;
+    channel: string;
   };
+  channels: string[];
   onChange: (filters: FilterBarProps['filters']) => void;
 }
 
-export default function FilterBar({ filters, onChange }: FilterBarProps) {
+export default function FilterBar({ filters, channels, onChange }: FilterBarProps) {
   const updateFilter = (key: string, value: string) => {
     onChange({ ...filters, [key]: value });
   };
@@ -21,7 +23,7 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
   const years = Array.from({ length: currentYear - 2004 }, (_, i) => (currentYear - i).toString());
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       <div className="space-y-2">
         <Label className="text-sm font-medium">影片類型</Label>
         <Select value={filters.mediaType} onValueChange={(v) => updateFilter('mediaType', v)}>
@@ -99,6 +101,23 @@ export default function FilterBar({ filters, onChange }: FilterBarProps) {
             <SelectItem value="9:16">9:16</SelectItem>
             <SelectItem value="1:1">1:1</SelectItem>
             <SelectItem value="other">其他</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">頻道</Label>
+        <Select value={filters.channel} onValueChange={(v) => updateFilter('channel', v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="全部" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部</SelectItem>
+            {channels.map((channel) => (
+              <SelectItem key={channel} value={channel}>
+                {channel}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
