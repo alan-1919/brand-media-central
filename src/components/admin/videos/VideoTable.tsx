@@ -19,6 +19,9 @@ interface VideoTableProps {
   onBrandChange: (brand: string) => void;
   selectedStatus: string;
   onStatusChange: (status: string) => void;
+  selectedChannel: string;
+  onChannelChange: (channel: string) => void;
+  channels: string[];
   sortField: SortField;
   sortDirection: 'asc' | 'desc';
   onSort: (field: SortField) => void;
@@ -40,6 +43,9 @@ export function VideoTable({
   onBrandChange,
   selectedStatus,
   onStatusChange,
+  selectedChannel,
+  onChannelChange,
+  channels,
   sortField,
   sortDirection,
   onSort
@@ -84,6 +90,20 @@ export function VideoTable({
             <SelectItem value="all">全部狀態</SelectItem>
             <SelectItem value="published">已發布</SelectItem>
             <SelectItem value="draft">草稿</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedChannel} onValueChange={onChannelChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="頻道" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部頻道</SelectItem>
+            {channels.map((channel) => (
+              <SelectItem key={channel} value={channel}>
+                {channel}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

@@ -45,6 +45,7 @@ export default function Index() {
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [videos, setVideos] = useState<Video[]>([]);
+  const [channels, setChannels] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   
@@ -56,6 +57,7 @@ export default function Index() {
     source: searchParams.get('source') || 'all',
     captions: searchParams.get('captions') || 'all',
     aspectRatio: searchParams.get('aspectRatio') || 'all',
+    channel: searchParams.get('channel') || 'all',
   });
   
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'updated_at');
@@ -65,8 +67,15 @@ export default function Index() {
   useEffect(() => {
     if (!authLoading) {
       fetchVideos();
+      fetchChannels();
     }
-  }, [selectedBrand, searchQuery, filters, sortBy, page, role, authLoading]);
+  }, [authLoading]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      fetchVideos();
+    }
+  }, [selectedBrand, searchQuery, filters, sortBy, page, role]);
 
   useEffect(() => {
     // Update URL params
@@ -78,11 +87,28 @@ export default function Index() {
     if (filters.source && filters.source !== 'all') params.source = filters.source;
     if (filters.captions && filters.captions !== 'all') params.captions = filters.captions;
     if (filters.aspectRatio && filters.aspectRatio !== 'all') params.aspectRatio = filters.aspectRatio;
+    if (filters.channel && filters.channel !== 'all') params.channel = filters.channel;
     if (sortBy !== 'updated_at') params.sort = sortBy;
     if (page !== 1) params.page = page.toString();
     
     setSearchParams(params);
   }, [selectedBrand, searchQuery, filters, sortBy, page]);
+
+  const fetchChannels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('videos')
+        .select('channel_name')
+        .not('channel_name', 'is', null);
+
+      if (error) throw error;
+
+      const uniqueChannels = [...new Set(data?.map(v => v.channel_name).filter(Boolean) as string[])].sort();
+      setChannels(uniqueChannels);
+    } catch (error) {
+      console.error('Error fetching channels:', error);
+    }
+  };
 
   const fetchVideos = async () => {
     try {
@@ -117,6 +143,9 @@ export default function Index() {
       }
       if (filters.aspectRatio && filters.aspectRatio !== 'all') {
         query = query.eq('aspect_ratio', filters.aspectRatio as any);
+      }
+      if (filters.channel && filters.channel !== 'all') {
+        query = query.eq('channel_name', filters.channel);
       }
 
       // Apply sorting
@@ -161,7 +190,7 @@ export default function Index() {
         
         <div className="space-y-4">
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <FilterBar filters={filters} onChange={setFilters} />
+          <FilterBar filters={filters} channels={channels} onChange={setFilters} />
         </div>
 
         <VideoGrid
