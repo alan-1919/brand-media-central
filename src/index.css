@@ -2,105 +2,141 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* 
+ * Enterprise Clean UI Design System
+ * Style Reference: Atlassian Design System
+ * Vibe: Professional, Trustworthy, Accessible, Clean
+ */
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
+    /* Primary - High contrast deep blue for professionalism */
+    --primary: 214 84% 47%;           /* #1868DB - Blue 600 */
+    --primary-hover: 217 100% 50%;    /* #0065FF - Blue 500 */
+    --primary-active: 216 93% 33%;    /* #0747A6 - Blue 700 */
+    --primary-foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
+    /* Neutral - Text and backgrounds */
+    --background: 0 0% 100%;          /* #FFFFFF - App background */
+    --foreground: 218 50% 19%;        /* #172B4D - Main text (deep grey, not pure black) */
+    
+    --card: 0 0% 100%;                /* #FFFFFF - Card background */
+    --card-foreground: 218 50% 19%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 218 50% 19%;
+    
+    --secondary: 220 14% 96%;         /* #F4F5F7 - Surface background */
+    --secondary-foreground: 218 50% 19%;
+    
+    --muted: 220 14% 96%;             /* #F4F5F7 */
+    --muted-foreground: 218 17% 44%;  /* #5E6C84 - Secondary text */
+    
+    --accent: 220 14% 96%;
+    --accent-foreground: 218 50% 19%;
 
-    --primary: 222 47% 11%;
-    --primary-foreground: 0 0% 98%;
+    /* Semantic colors */
+    --success: 157 65% 46%;           /* #36B37E */
+    --success-foreground: 0 0% 100%;
+    --warning: 42 100% 50%;           /* #FFAB00 */
+    --warning-foreground: 218 50% 19%;
+    --destructive: 14 100% 60%;       /* #FF5630 */
+    --destructive-foreground: 0 0% 100%;
+    --info: 217 100% 50%;             /* #0065FF */
+    --info-foreground: 0 0% 100%;
 
-    --secondary: 210 17% 95%;
-    --secondary-foreground: 222 47% 11%;
+    /* Borders and inputs */
+    --border: 216 16% 87%;            /* #DFE1E6 */
+    --input: 220 20% 98%;             /* #FAFBFC - Input background */
+    --input-border: 216 16% 87%;      /* #DFE1E6 */
+    --input-focus: 214 100% 40%;      /* #0052CC - Focus border */
+    --ring: 214 84% 47%;
 
-    --muted: 210 17% 95%;
-    --muted-foreground: 215 16% 47%;
+    /* Radius - Modern and soft */
+    --radius: 0.5rem;                 /* 8px for cards/modals */
+    --radius-sm: 0.1875rem;           /* 3px for buttons/inputs */
 
-    --accent: 210 17% 93%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 47% 11%;
-
-    --radius: 0.75rem;
+    /* Shadows */
+    --shadow-card: 0px 1px 2px rgba(9, 30, 66, 0.25);
+    --shadow-overlay: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
     
     /* Brand colors */
     --peugeot: 222 55% 22%;
-    --peugeot-foreground: 0 0% 98%;
+    --peugeot-foreground: 0 0% 100%;
     --citroen: 0 93% 46%;
-    --citroen-foreground: 0 0% 98%;
+    --citroen-foreground: 0 0% 100%;
     --alfa: 156 84% 16%;
-    --alfa-foreground: 0 0% 98%;
+    --alfa-foreground: 0 0% 100%;
     --jeep: 30 7% 22%;
-    --jeep-foreground: 0 0% 98%;
+    --jeep-foreground: 0 0% 100%;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 218 17% 44%;
+    --sidebar-primary: 214 84% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 218 50% 19%;
+    --sidebar-border: 216 16% 87%;
+    --sidebar-ring: 214 84% 47%;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 17% 98%;
+    /* Dark mode - Inverted for accessibility */
+    --primary: 214 84% 56%;
+    --primary-hover: 217 100% 60%;
+    --primary-active: 214 84% 47%;
+    --primary-foreground: 0 0% 100%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 210 17% 98%;
-
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 17% 98%;
-
-    --primary: 210 17% 98%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 17% 98%;
-
-    --muted: 217 33% 17%;
+    --background: 218 50% 10%;
+    --foreground: 210 17% 95%;
+    
+    --card: 218 50% 13%;
+    --card-foreground: 210 17% 95%;
+    
+    --popover: 218 50% 13%;
+    --popover-foreground: 210 17% 95%;
+    
+    --secondary: 218 40% 17%;
+    --secondary-foreground: 210 17% 95%;
+    
+    --muted: 218 40% 17%;
     --muted-foreground: 215 20% 65%;
+    
+    --accent: 218 40% 20%;
+    --accent-foreground: 210 17% 95%;
 
-    --accent: 217 33% 20%;
-    --accent-foreground: 210 17% 98%;
+    /* Semantic colors - Dark mode */
+    --success: 157 65% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 42 100% 45%;
+    --warning-foreground: 218 50% 10%;
+    --destructive: 14 85% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --info: 217 100% 55%;
+    --info-foreground: 0 0% 100%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 17% 98%;
+    --border: 218 40% 20%;
+    --input: 218 40% 15%;
+    --input-border: 218 40% 25%;
+    --input-focus: 214 100% 55%;
+    --ring: 214 84% 56%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 213 27% 84%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    /* Brand colors - Slightly lighter for dark mode */
+    --peugeot: 222 55% 35%;
+    --citroen: 0 80% 55%;
+    --alfa: 156 70% 30%;
+    --jeep: 30 15% 35%;
+
+    /* Sidebar - Dark mode */
+    --sidebar-background: 218 50% 10%;
+    --sidebar-foreground: 210 17% 85%;
+    --sidebar-primary: 214 84% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 218 40% 17%;
+    --sidebar-accent-foreground: 210 17% 95%;
+    --sidebar-border: 218 40% 20%;
+    --sidebar-ring: 214 84% 56%;
   }
 }
 
@@ -110,6 +146,48 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Typography scale based on design system */
+  h1 {
+    @apply text-[29px] font-semibold leading-tight tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-medium leading-tight;
+  }
+
+  h3 {
+    @apply text-xl font-medium leading-snug;
+  }
+
+  /* Input focus states */
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply outline-none ring-2 ring-primary/20;
+  }
+}
+
+@layer components {
+  /* Card with shadow */
+  .card-elevated {
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-overlay {
+    box-shadow: var(--shadow-overlay);
+  }
+
+  /* Interactive hover effects */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-0.5;
+    box-shadow: var(--shadow-overlay);
   }
 }
