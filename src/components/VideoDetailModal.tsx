@@ -41,9 +41,7 @@ export default function VideoDetailModal({ video, open, onClose }: VideoDetailMo
   };
 
   const getUtmUrl = () => {
-    if (video.utm_template) {
-      return video.youtube_url + video.utm_template;
-    }
+    // UTM template is internal metadata, not exposed to public
     return video.youtube_url;
   };
 
@@ -152,18 +150,6 @@ export default function VideoDetailModal({ video, open, onClose }: VideoDetailMo
               <span className="font-medium text-muted-foreground">來源：</span>
               <span className="ml-2">{video.source}</span>
             </div>
-            {video.source_account && (
-              <div>
-                <span className="font-medium text-muted-foreground">來源帳號：</span>
-                <span className="ml-2">{video.source_account}</span>
-              </div>
-            )}
-            {video.campaign && (
-              <div>
-                <span className="font-medium text-muted-foreground">活動：</span>
-                <span className="ml-2">{video.campaign}</span>
-              </div>
-            )}
             <div>
               <span className="font-medium text-muted-foreground">比例：</span>
               <span className="ml-2">{video.aspect_ratio}</span>
@@ -172,12 +158,6 @@ export default function VideoDetailModal({ video, open, onClose }: VideoDetailMo
               <span className="font-medium text-muted-foreground">字幕：</span>
               <span className="ml-2">{video.captions ? '有' : '無'}</span>
             </div>
-            {video.rights_note && (
-              <div className="md:col-span-2">
-                <span className="font-medium text-muted-foreground">版權說明：</span>
-                <span className="ml-2">{video.rights_note}</span>
-              </div>
-            )}
           </div>
 
           {/* Tags */}
