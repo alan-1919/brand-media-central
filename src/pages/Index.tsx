@@ -11,6 +11,9 @@ import VideoDetailModal from '@/components/VideoDetailModal';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+// Public-safe video fields (excludes sensitive internal metadata)
+const PUBLIC_VIDEO_COLUMNS = 'id, brand, model, title_zh, title_en, youtube_url, youtube_video_id, channel_name, publish_date, media_type, tags, language, region, thumbnail_url, duration_sec, aspect_ratio, captions, source, views, updated_at, dealer_visibility, status';
+
 export type Video = {
   id: string;
   brand: string;
@@ -25,18 +28,15 @@ export type Video = {
   tags: string[];
   language: string;
   region: string;
-  campaign: string | null;
-  rights_note: string | null;
   dealer_visibility: string;
   duration_sec: number | null;
   aspect_ratio: string;
   thumbnail_url: string | null;
   captions: boolean;
   source: string;
-  source_account: string | null;
-  utm_template: string | null;
   views: number;
   updated_at: string;
+  status?: string;
 };
 
 export default function Index() {
@@ -116,7 +116,7 @@ export default function Index() {
       
       let query = supabase
         .from('videos')
-        .select('*', { count: 'exact' });
+        .select(PUBLIC_VIDEO_COLUMNS, { count: 'exact' });
 
       // Apply brand filter
       if (selectedBrand !== 'ALL') {
