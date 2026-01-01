@@ -212,6 +212,31 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
         return cleanData;
       });
 
+      // 取得 CSV 中所有的 youtube_video_id
+      const csvVideoIds = videosToInsert
+        .map(v => v.youtube_video_id)
+        .filter(Boolean);
+
+      // 檢查資料庫中是否有重複的 youtube_video_id
+      if (csvVideoIds.length > 0) {
+        const { data: existingVideos } = await supabase
+          .from('videos')
+          .select('youtube_video_id, title_zh')
+          .in('youtube_video_id', csvVideoIds);
+
+        if (existingVideos && existingVideos.length > 0) {
+          const duplicateErrors = existingVideos.map(v => 
+            `YouTube ID "${v.youtube_video_id}" 已存在${v.title_zh ? `（${v.title_zh}）` : ''}`
+          );
+          setErrors([
+            '以下影片已存在於資料庫中：',
+            ...duplicateErrors
+          ]);
+          setImporting(false);
+          return;
+        }
+      }
+
       // Insert videos
       const { data, error } = await supabase
         .from('videos')
