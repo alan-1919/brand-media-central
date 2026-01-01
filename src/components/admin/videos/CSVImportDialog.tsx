@@ -214,19 +214,42 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
 
       // 取得 CSV 中所有的 youtube_video_id
       const csvVideoIds = videosToInsert
-        .map(v => v.youtube_video_id)
-        .filter(Boolean);
+        .map((v, index) => ({ id: v.youtube_video_id, index, title: v.title_zh }))
+        .filter(v => v.id);
+
+      // 檢查 CSV 內部是否有重複的 youtube_video_id
+      const idCounts: Record<string, { count: number; title: string }> = {};
+      csvVideoIds.forEach(v => {
+        if (!idCounts[v.id]) {
+          idCounts[v.id] = { count: 0, title: v.title || '' };
+        }
+        idCounts[v.id].count++;
+      });
+      
+      const csvDuplicates = Object.entries(idCounts)
+        .filter(([_, info]) => info.count > 1)
+        .map(([id, info]) => `YouTube ID "${id}" 在 CSV 中出現 ${info.count} 次${info.title ? `（${info.title}）` : ''}`);
+
+      if (csvDuplicates.length > 0) {
+        setErrors([
+          'CSV 檔案內有重複的影片：',
+          ...csvDuplicates
+        ]);
+        setImporting(false);
+        return;
+      }
 
       // 檢查資料庫中是否有重複的 youtube_video_id
-      if (csvVideoIds.length > 0) {
+      const uniqueVideoIds = csvVideoIds.map(v => v.id);
+      if (uniqueVideoIds.length > 0) {
         const { data: existingVideos } = await supabase
           .from('videos')
           .select('youtube_video_id, title_zh')
-          .in('youtube_video_id', csvVideoIds);
+          .in('youtube_video_id', uniqueVideoIds);
 
         if (existingVideos && existingVideos.length > 0) {
           const duplicateErrors = existingVideos.map(v => 
-            `YouTube ID "${v.youtube_video_id}" 已存在${v.title_zh ? `（${v.title_zh}）` : ''}`
+            `YouTube ID "${v.youtube_video_id}" 已存在於資料庫${v.title_zh ? `（${v.title_zh}）` : ''}`
           );
           setErrors([
             '以下影片已存在於資料庫中：',
@@ -245,7 +268,8 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error('部分影片的 YouTube ID 已存在，請檢查是否重複');
+          // 嘗試從錯誤訊息中提取具體資訊
+          throw new Error(`部分影片的 YouTube ID 已存在，請檢查是否重複。詳細錯誤：${error.message}`);
         }
         throw error;
       }
