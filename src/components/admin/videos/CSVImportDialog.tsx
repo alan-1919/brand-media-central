@@ -4,8 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Download, Upload, AlertCircle } from 'lucide-react';
+import { Download, Upload, AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+
+interface YouTubeMetadata {
+  videoId: string;
+  title: string | null;
+  publishDate: string | null;
+  channelName: string | null;
+  thumbnailUrl: string | null;
+  duration: number | null;
+  viewCount: number | null;
+}
 
 interface CSVImportDialogProps {
   open: boolean;
@@ -151,6 +161,41 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
     return errors;
   };
 
+  // 調用 YouTube API 獲取影片資料
+  const fetchYouTubeMetadata = async (videoIds: string[]): Promise<YouTubeMetadata[]> => {
+    try {
+      const response = await supabase.functions.invoke('fetch-youtube-metadata', {
+        body: { videoIds },
+      });
+
+      if (response.error) {
+        console.error('Error fetching YouTube metadata:', response.error);
+        return videoIds.map(videoId => ({
+          videoId,
+          title: null,
+          publishDate: null,
+          channelName: null,
+          thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+          duration: null,
+          viewCount: null,
+        }));
+      }
+
+      return response.data?.videos || [];
+    } catch (error) {
+      console.error('Error calling fetch-youtube-metadata:', error);
+      return videoIds.map(videoId => ({
+        videoId,
+        title: null,
+        publishDate: null,
+        channelName: null,
+        thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+        duration: null,
+        viewCount: null,
+      }));
+    }
+  };
+
   const handleImport = async () => {
     if (!file) {
       toast({
@@ -260,6 +305,43 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
         }
       }
 
+      // 獲取 YouTube 影片資料
+      if (uniqueVideoIds.length > 0) {
+        const metadataList = await fetchYouTubeMetadata(uniqueVideoIds);
+        const metadataMap = new Map<string, YouTubeMetadata>();
+        for (const metadata of metadataList) {
+          metadataMap.set(metadata.videoId, metadata);
+        }
+
+        // 將 YouTube 資料合併到 videosToInsert 中（CSV 提供的資料優先）
+        videosToInsert.forEach(video => {
+          if (video.youtube_video_id) {
+            const metadata = metadataMap.get(video.youtube_video_id);
+            if (metadata) {
+              // 只在 CSV 沒有提供時才使用 YouTube 資料
+              if (!video.title_zh && metadata.title) {
+                video.title_zh = metadata.title;
+              }
+              if (!video.publish_date && metadata.publishDate) {
+                video.publish_date = metadata.publishDate;
+              }
+              if (!video.channel_name && metadata.channelName) {
+                video.channel_name = metadata.channelName;
+              }
+              if (!video.thumbnail_url && metadata.thumbnailUrl) {
+                video.thumbnail_url = metadata.thumbnailUrl;
+              }
+              if (!video.duration_sec && metadata.duration) {
+                video.duration_sec = metadata.duration;
+              }
+              if (metadata.viewCount !== null && metadata.viewCount !== undefined) {
+                video.views = metadata.viewCount;
+              }
+            }
+          }
+        });
+      }
+
       // Insert videos
       const { data, error } = await supabase
         .from('videos')
@@ -276,7 +358,7 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
 
       toast({
         title: '匯入成功',
-        description: `成功匯入 ${data?.length || 0} 筆影片資料`,
+        description: `成功匯入 ${data?.length || 0} 筆影片資料，已自動獲取 YouTube 影片資訊`,
       });
 
       onSuccess();
@@ -346,9 +428,10 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
             <div className="font-semibold">匯入說明：</div>
             <ul className="list-disc pl-5 space-y-1">
               <li>所有欄位皆為選填，可只填寫需要的資訊</li>
+              <li>系統會自動從 YouTube 獲取：標題、發布日期、頻道名稱、時長、觀看次數</li>
               <li>品牌：PEUGEOT、CITROËN、ALFA ROMEO、JEEP</li>
               <li>YouTube 連結：支援各種格式，包括短影音連結</li>
-              <li>發布日期：YYYY-MM-DD 格式（例：2024-01-15）</li>
+              <li>若 CSV 已填寫資料，將優先使用 CSV 提供的資料</li>
               <li>經銷商可見性：internal-only 或 dealer-visible（預設：dealer-visible）</li>
               <li>標籤：多個標籤用分號(;)分隔</li>
               <li>布林值欄位（captions, hero）：填 true 或 false</li>
@@ -361,8 +444,8 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
             取消
           </Button>
           <Button onClick={handleImport} disabled={!file || importing}>
-            <Upload className="h-4 w-4 mr-2" />
-            {importing ? '匯入中...' : '開始匯入'}
+            {importing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+            {importing ? '匯入中（正在獲取 YouTube 資料）...' : '開始匯入'}
           </Button>
         </DialogFooter>
       </DialogContent>
