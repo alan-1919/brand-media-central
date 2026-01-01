@@ -74,13 +74,32 @@ export function CSVImportDialog({ open, onClose, onSuccess }: CSVImportDialogPro
     });
   };
 
+  // 正規化品牌名稱，支援 CITROEN (英文 E) 轉換為 CITROËN
+  const normalizeBrand = (brand: string): string | null => {
+    if (!brand) return null;
+    const upperBrand = brand.toUpperCase().trim();
+    // 支援 CITROEN 或 CITROËN
+    if (upperBrand === 'CITROEN' || upperBrand === 'CITROËN') {
+      return 'CITROËN';
+    }
+    if (['PEUGEOT', 'ALFA ROMEO', 'JEEP'].includes(upperBrand)) {
+      return upperBrand as any;
+    }
+    return null; // 無效的品牌
+  };
+
   const validateRow = (row: any): string[] => {
     const errors: string[] = [];
     const rowNum = row._rowNumber;
 
-    // 只驗證有提供值時的格式，不強制必填
-    if (row.brand && !['PEUGEOT', 'CITROËN', 'ALFA ROMEO', 'JEEP'].includes(row.brand)) {
-      errors.push(`第 ${rowNum} 列：品牌必須是 PEUGEOT、CITROËN、ALFA ROMEO 或 JEEP 其中之一`);
+    // 驗證並正規化品牌
+    if (row.brand) {
+      const normalizedBrand = normalizeBrand(row.brand);
+      if (normalizedBrand) {
+        row.brand = normalizedBrand; // 自動轉換為正確格式
+      } else {
+        errors.push(`第 ${rowNum} 列：品牌必須是 PEUGEOT、CITROËN (或 CITROEN)、ALFA ROMEO 或 JEEP 其中之一`);
+      }
     }
 
     // 嘗試從 youtube_url 提取 video_id，但不強制格式
