@@ -152,7 +152,7 @@ export default function AdminVideos() {
       // Get all videos with youtube_video_id
       const { data: videosToUpdate, error: fetchError } = await supabase
         .from('videos')
-        .select('id, youtube_video_id')
+        .select('id, youtube_video_id, title_zh, channel_name, publish_date')
         .not('youtube_video_id', 'is', null);
 
       if (fetchError) throw fetchError;
@@ -187,14 +187,47 @@ export default function AdminVideos() {
 
         const metadataList = response.data?.videos || [];
 
-        // Update each video's view count
+        // Update each video with all metadata from YouTube
         for (const metadata of metadataList) {
-          if (metadata.viewCount !== null) {
-            const videoRecord = batch.find(v => v.youtube_video_id === metadata.videoId);
-            if (videoRecord) {
+          const videoRecord = batch.find(v => v.youtube_video_id === metadata.videoId);
+          if (videoRecord) {
+            // Build update object, only update missing fields (except views which always updates)
+            const updateData: Record<string, any> = {};
+            
+            // Always update views
+            if (metadata.viewCount !== null && metadata.viewCount !== undefined) {
+              updateData.views = metadata.viewCount;
+            }
+            
+            // Update title if empty
+            if (!videoRecord.title_zh && metadata.title) {
+              updateData.title_zh = metadata.title;
+            }
+            
+            // Update channel_name if empty
+            if (!videoRecord.channel_name && metadata.channelName) {
+              updateData.channel_name = metadata.channelName;
+            }
+            
+            // Update publish_date if empty
+            if (!videoRecord.publish_date && metadata.publishDate) {
+              updateData.publish_date = metadata.publishDate;
+            }
+            
+            // Update duration if available
+            if (metadata.duration !== null && metadata.duration !== undefined) {
+              updateData.duration_sec = metadata.duration;
+            }
+            
+            // Update thumbnail if available
+            if (metadata.thumbnailUrl) {
+              updateData.thumbnail_url = metadata.thumbnailUrl;
+            }
+            
+            if (Object.keys(updateData).length > 0) {
               const { error: updateError } = await supabase
                 .from('videos')
-                .update({ views: metadata.viewCount })
+                .update(updateData)
                 .eq('id', videoRecord.id);
 
               if (!updateError) updatedCount++;
@@ -205,9 +238,10 @@ export default function AdminVideos() {
 
       toast({
         title: '更新完成',
-        description: `已更新 ${updatedCount} 個影片的觀看次數`,
+        description: `已更新 ${updatedCount} 個影片的資訊（觀看次數、標題、頻道名稱等）`,
       });
       fetchVideos();
+      fetchChannels();
     } catch (error: any) {
       toast({
         title: '更新失敗',
@@ -234,7 +268,7 @@ export default function AdminVideos() {
             </Button>
             <Button variant="outline" onClick={handleRefreshViews} disabled={isRefreshingViews}>
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshingViews ? 'animate-spin' : ''}`} />
-              更新觀看次數
+              {isRefreshingViews ? '更新中...' : '更新影片資訊'}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
